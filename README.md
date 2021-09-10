@@ -1,4 +1,4 @@
-# Braves_InterviewV
+# Braves_Interview
 This application was created for the Atlanta Braves Organization in order to demonstate basic visualization skills and a fundamental understanding of baseball statisitcs by Jake Hlavaty.  
 
 If any questions, feel free to reach out to me at:  
