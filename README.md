@@ -1,5 +1,6 @@
 # Braves_InterviewV
 This application was created for the Atlanta Braves Organization in order to demonstate basic visualization skills and a fundamental understanding of baseball statisitcs by Jake Hlavaty.  
+
 If any questions, feel free to reach out to me at:  
 jake_hlavaty@gatech.edu  
 (203)980-2803  
