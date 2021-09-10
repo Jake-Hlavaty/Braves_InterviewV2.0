@@ -1,5 +1,10 @@
 # Braves_InterviewV
-This application was created for the Atlanta Braves Organization in order to demonstate basic visualization skills and a fundamental understanding of baseball statisitcs by Jake Hlavaty. If any questions, feel free to reach out to me at jake_hlavaty@gatech.edu or at (203)980-2803. Additional information can also be found in the original email linking this github.
+This application was created for the Atlanta Braves Organization in order to demonstate basic visualization skills and a fundamental understanding of baseball statisitcs by Jake Hlavaty. 
+If any questions, feel free to reach out to me at:
+jake_hlavaty@gatech.edu
+(203)980-2803
+
+Additional information can also be found in the original email linking this github.
 
 ### Dashboard/Home Menu
 The dashboard includes a dropdown select box to select a pitcher all 3 pitch heatmap plots. These scatter plots demonstrate pitch locations for a given pitcher and when a pitch is hovered over, offers additional details related to pitch velocity and type. Scatter plot dots are also color coded to indiate whether a pitch was a strike, ball, or hit into play.  In order, the first chart represents the pitch locations overall, the second for pitches against left handed batters, and the third for pitches against the right handed batter. In order to navigate to other pages, a navigation menu is included at the top of the screen. 
