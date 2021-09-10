@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+
+
+
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Tendencies</title>
+</head>
+
+<style>
+
+ul{
+  background-color: #13274F;
+  color: #FFFFFF;
+}
+.navbar-light .navbar-nav .nav-link {
+    color: #FFFFFF;
+}
+.bg-light {
+    background-color: #CE1141!important;
+}
+}
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #FFF;
+}
+
+.box {
+  fill: none;
+	stroke: #000;
+}
+
+.tooltip {
+
+}
+.tooltip2{
+}
+</style>
+<body>
+
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Braves</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dash') }}">Dashboard </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('charting') }}">Charting<span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('tendencies') }}">Tendencies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('summary') }}">Summary</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('Height_v_Side') }}">Height v Side</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 40},
+    w = 400 - margin.left - margin.right,
+    h = 300 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("body")
+  .append("svg")
+    .attr("width", w + margin.left + margin.right)
+    .attr("height", h + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Read the data and compute summary statistics for each specie
+d3.csv("/static/data/PitchData.csv", function(data) {
+ d3.select("#selectButton")
+                  .selectAll('option')
+                  .data(d3.map(data, function(d){return d.pitcher_name;}).keys())
+                  .enter()
+                  .append('option')
+                  .text(function (d) { return d; }) // text showed in the menu
+                  .attr("value", function (d) { return d; })
+
+  // Compute quartiles, median, inter quantile range min and max --> these info are then used to draw the box.
+  var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
+    .key(function(d) {if(d.pitcher_name === "Fried, Max"){return d.pitch_type;}})
+    .rollup(function(d) {
+      q1 = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_speed;}}).sort(d3.ascending),.25)
+      median = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_speed;}}).sort(d3.ascending),.5)
+      q3 = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_speed;}}).sort(d3.ascending),.75)
+      interQuantileRange = q3 - q1
+      min = q1 - 1.5 * interQuantileRange
+      max = q3 + 1.5 * interQuantileRange
+      return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max})
+    })
+    .entries(data)
+
+  // Show the X scale
+  var x = d3.scaleBand()
+    .range([ 0, w ])
+    .domain(["FF", "CU", "SL", "SI","CH"])
+    .paddingInner(1)
+    .paddingOuter(.5)
+  svg.append("g")
+    .attr("transform", "translate(0," + h + ")")
+    .call(d3.axisBottom(x))
+
+  // Show the Y scale
+  var y = d3.scaleLinear()
+    .domain([60,110])
+    .range([h, 0])
+  svg.append("g").call(d3.axisLeft(y))
+
+  // Show the main vertical line
+  svg
+    .selectAll("vertLines")
+    .data(sumstat)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(x(d.key))})
+      .attr("x2", function(d){return(x(d.key))})
+      .attr("y1", function(d){return(y(d.value.min))})
+      .attr("y2", function(d){return(y(d.value.max))})
+      .attr("stroke", "black")
+      .style("width", 40)
+
+  // rectangle for the main box
+  var boxWidth = 50
+  svg
+    .selectAll("boxes")
+    .data(sumstat)
+    .enter()
+    .append("rect")
+        .attr("x", function(d){return(x(d.key)-boxWidth/2)})
+        .attr("y", function(d){return(y(d.value.q3))})
+        .attr("height", function(d){return(y(d.value.q1)-y(d.value.q3))})
+        .attr("width", boxWidth )
+        .attr("stroke", "black")
+        .style("fill", "#69b3a2")
+
+  // Show the median
+  svg
+    .selectAll("medianLines")
+    .data(sumstat)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(x(d.key)-boxWidth/2) })
+      .attr("x2", function(d){return(x(d.key)+boxWidth/2) })
+      .attr("y1", function(d){return(y(d.value.median))})
+      .attr("y2", function(d){return(y(d.value.median))})
+      .attr("stroke", "black")
+      .style("width", 80)
+})
+
+var chart2 = d3.select("body")
+  .append("svg")
+    .attr("width", w + margin.left + margin.right)
+    .attr("height", h + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Read the data and compute summary statistics for each specie
+d3.csv("/static/data/PitchData.csv", function(data) {
+ d3.select("#selectButton")
+                  .selectAll('option')
+                  .data(d3.map(data, function(d){return d.pitcher_name;}).keys())
+                  .enter()
+                  .append('option')
+                  .text(function (d) { return d; }) // text showed in the menu
+                  .attr("value", function (d) { return d; })
+
+  // Compute quartiles, median, inter quantile range min and max --> these info are then used to draw the box.
+  var sumstat2 = d3.nest() // nest function allows to group the calculation per level of a factor
+    .key(function(d) {if(d.pitcher_name === "Fried, Max"){return d.pitch_type;}})
+    .rollup(function(d) {
+      q1 = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_spin_rate;}}).sort(d3.ascending),.25)
+      median = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_spin_rate;}}).sort(d3.ascending),.5)
+      q3 = d3.quantile(d.map(function(g) {if(g.pitcher_name === "Fried, Max"){return g.release_spin_rate;}}).sort(d3.ascending),.75)
+      interQuantileRange = q3 - q1
+      min = q1 - 1.5 * interQuantileRange
+      max = q3 + 1.5 * interQuantileRange
+      return({q1: q1, median: median, q3: q3, interQuantileRange: interQuantileRange, min: min, max: max})
+    })
+    .entries(data)
+
+  // Show the X scale
+  var x = d3.scaleBand()
+    .range([ 0, w ])
+    .domain(["FF", "CU", "SL", "SI","CH"])
+    .paddingInner(1)
+    .paddingOuter(.5)
+  chart2.append("g")
+    .attr("transform", "translate(0," + h + ")")
+    .call(d3.axisBottom(x))
+
+  // Show the Y scale
+  var y = d3.scaleLinear()
+    .domain([0,3400])
+    .range([h, 0])
+  chart2.append("g").call(d3.axisLeft(y))
+
+  // Show the main vertical line
+  chart2
+    .selectAll("vertLines")
+    .data(sumstat2)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(x(d.key))})
+      .attr("x2", function(d){return(x(d.key))})
+      .attr("y1", function(d){return(y(d.value.min))})
+      .attr("y2", function(d){return(y(d.value.max))})
+      .attr("stroke", "black")
+      .style("width", 40)
+
+  // rectangle for the main box
+  var boxWidth = 50
+  chart2
+    .selectAll("boxes")
+    .data(sumstat2)
+    .enter()
+    .append("rect")
+        .attr("x", function(d){return(x(d.key)-boxWidth/2)})
+        .attr("y", function(d){return(y(d.value.q3))})
+        .attr("height", function(d){return(y(d.value.q1)-y(d.value.q3))})
+        .attr("width", boxWidth )
+        .attr("stroke", "black")
+        .style("fill", "#69b3a2")
+
+  // Show the median
+  chart2
+    .selectAll("medianLines")
+    .data(sumstat2)
+    .enter()
+    .append("line")
+      .attr("x1", function(d){return(x(d.key)-boxWidth/2) })
+      .attr("x2", function(d){return(x(d.key)+boxWidth/2) })
+      .attr("y1", function(d){return(y(d.value.median))})
+      .attr("y2", function(d){return(y(d.value.median))})
+      .attr("stroke", "black")
+      .style("width", 80)
+
+      svg.append("text")
+        .attr("x", w/2)
+        .attr("y", 5 )
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("text-decoration", "underline")
+        .text("Max Fried - Velocity ");
+      chart2.append("text")
+        .attr("x", w/2)
+        .attr("y", 5 )
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("text-decoration", "underline")
+        .text("Max Fried - Spin Rate");
+
+})
+
+</script>

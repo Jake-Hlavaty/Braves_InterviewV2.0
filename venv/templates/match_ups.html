@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+
+
+
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel='stylesheet' href='style.css'>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Dashboard</title>
+</head>
+
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+table{
+width: 100%;
+}
+ul{
+  background-color: #13274F;
+  color: #FFFFFF;
+}
+.navbar-light .navbar-nav .nav-link {
+    color: #FFFFFF;
+}
+.bg-light {
+    background-color: #CE1141!important;
+}
+}
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #FFF;
+}
+
+.box {
+  fill: none;
+	stroke: #000;
+}
+
+.tooltip {
+
+}
+.tooltip2{
+}
+</style>
+
+<body>
+
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Braves</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dash') }}">Dashboard <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('charting') }}">Charting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('tendencies') }}">Tendencies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('summary') }}">Summary</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('Height_v_Side') }}">Height v Side</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <link rel='stylesheet' href='style.css'>
+        <script type="text/javascript"charset="utf-8">
+
+             var tabulate = function (data,columns) {
+  var table = d3.select('body').append('table')
+	var thead = table.append('thead')
+	var tbody = table.append('tbody')
+
+	thead.append('tr')
+	  .selectAll('th')
+	    .data(columns)
+	    .enter()
+	  .append('th')
+	    .text(function (d) { return d })
+
+	var rows = tbody.selectAll('tr')
+	    .data(data)
+	    .enter()
+	  .append('tr')
+
+	var cells = rows.selectAll('td')
+	    .data(function(row) {
+	    	return columns.map(function (column) {
+	    		return { column: column, value: row[column] }
+	      })
+      })
+      .enter()
+    .append('td')
+      .text(function (d) { return d.value })
+
+  return table;
+}
+
+d3.csv("/static/data/PitchDataExtra.csv",function (data) {
+	var columns = ['Pitcher','FB%','CU%','CH%','SL%', 'SI%','HITS_A','1B_A','2B_A','3B_A','HR_A','Walks_A','SO','Avg_A','Slug_A','Woba_A']
+  tabulate(data,columns)
+})
+        </script>
+
+</body>
+
+</html>
